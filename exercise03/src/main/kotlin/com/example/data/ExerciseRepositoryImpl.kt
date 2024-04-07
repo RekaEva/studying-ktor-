@@ -1,0 +1,38 @@
+package com.example.data
+
+import com.example.domain.ExerciseRepository
+import com.example.domain.entity.Companies
+import com.example.domain.entity.Company
+import com.example.domain.entity.Vacancy
+import kotlinx.serialization.json.Json
+import java.io.File
+
+class ExerciseRepositoryImpl : ExerciseRepository {
+
+    private val readJson = File("src/main/kotlin/com/example/data/listOfCompanies.json").readText()
+    private val companies = Json.decodeFromString<Companies>(readJson).listOfCompanies
+
+    override fun getListCompanies(): List<Company> {
+        val updatedCompanies = companies.mapIndexed { index, company ->
+            company.copy(id = index + 1)
+        }
+        return updatedCompanies
+    }
+
+    override fun getCompanyById(id: Int): Company? {
+        return getListCompanies().find { it.id == id }
+    }
+
+    override fun getListVacancy(list: List<Company>): List<Vacancy> {
+        return list.flatMap { company ->
+            company.vacancies.map { vacancy ->
+                Vacancy(
+                    profession = vacancy.profession,
+                    level = vacancy.level,
+                    salary = vacancy.salary,
+                    companyName = company.name,
+                )
+            }
+        }
+    }
+}
